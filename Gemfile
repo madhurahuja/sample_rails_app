@@ -1,6 +1,10 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 gem 'rails',                      '6.1.4.6'
+# Env-compat (demo sandbox, Windows/Ruby 3.1): same fixes applied in the real
+# migration repo — Ruby 3.1's stdlib doesn't auto-require 'logger' early
+# enough for Rails 6.1's ActiveSupport at load time.
+gem 'logger'
 gem 'image_processing',           '1.9.3'
 gem 'mini_magick',                '4.9.5'
 gem 'active_storage_validations', '0.8.9'
@@ -14,7 +18,8 @@ gem 'sass-rails',                 '6.0.0'
 gem 'webpacker',                  '5.4.0'
 gem 'turbolinks',                 '5.2.1'
 gem 'jbuilder',                   '2.10.0'
-gem 'bootsnap',                   '1.7.2', require: false
+# Bumped from 1.7.2 (env-compat): Windows realpath_cache bug under Ruby 3.1.
+gem 'bootsnap',                   '~> 1.24', require: false
 gem 'factory_bot',                '6.1.0'
 gem 'factory_bot_rails',          '6.1.0'
 group :development, :test do
@@ -22,7 +27,8 @@ group :development, :test do
   # gem 'ruby-debug-ide'
   gem 'rspec-rails',        '5.1.2'
   gem 'simplecov',          '0.21.2'
-  gem 'sqlite3',            '1.4.2'
+  # Bumped from 1.4.2 (env-compat): GCC14 rejects that version's C extension.
+  gem 'sqlite3',            '~> 1.6'
   gem 'byebug',             '11.1.3', platforms: [:mri, :mingw, :x64_mingw]
 end
 group :development do
@@ -32,6 +38,9 @@ group :development do
   gem 'spring',             '2.1.1'
 end
 group :test do
+  # Env-compat: no longer default stdlib gems as of Ruby ~3.1.
+  gem 'matrix'
+  gem 'rexml'
   gem 'capybara',                 '3.35.3'
   gem 'selenium-webdriver',       '3.142.7'
   gem 'webdrivers',               '4.6.0'
@@ -44,5 +53,8 @@ group :production do
   gem 'pg', '1.2.3'
   gem 'aws-sdk-s3', '1.87.0', require: false
 end
-# Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
+# Windows does not include zoneinfo files, so bundle the tzinfo-data gem.
+# Env-compat: dropped the platforms: [] restriction — Ruby 3.1's actual
+# platform tag is x64-mingw-ucrt, which the older :x64_mingw macro doesn't
+# match, so bundler silently skipped installing it.
+gem 'tzinfo-data'
